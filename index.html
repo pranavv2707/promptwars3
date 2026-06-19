@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karbon.io | Eco-Tracker & Carbon Guardian</title>
+
+  <!-- Google Fonts: Space Grotesk (headlines), Lexend (body), JetBrains Mono (data/labels) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Lexend:wght@300;400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Inline style override to ensure select dropdowns match the dark theme inputs -->
+  <style>
+    .route-input.select-dropdown {
+      width: 100%;
+      background-color: #0b1329;
+      color: #adc6ff;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 10px;
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Dynamic Animated Live Map Background -->
+  <canvas id="live-map-canvas"></canvas>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <span class="brand-logo">
+            <!-- Dynamic Carbon Logo -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path class="svg-primary" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12"
+                stroke="#4edea3" stroke-width="2" stroke-linecap="round" />
+              <path class="svg-secondary"
+                d="M12 6C8.69 6 6 8.69 6 12C6 15.31 8.69 18 12 18C15.31 18 18 15.31 18 12C18 10.5 17.5 8 15 8"
+                stroke="#adc6ff" stroke-width="2" stroke-linecap="round" />
+              <circle class="svg-primary" cx="12" cy="12" r="2" fill="#4edea3" />
+            </svg>
+          </span>
+          <div class="brand-text">
+            <h1 class="logo-title">Karbon.io</h1>
+            <p class="logo-subtitle">Carbon Guardian</p>
+          </div>
+        </div>
+        <button id="mobile-menu-close" class="mobile-only-btn" aria-label="Close menu">&times;</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <button id="nav-command-center" class="nav-item active" data-target="view-command-center">
+              <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect class="svg-secondary" x="3" y="3" width="7" height="9" rx="1" stroke="#adc6ff" />
+                <rect class="svg-primary" x="14" y="3" width="7" height="5" rx="1" stroke="#4edea3" />
+                <rect class="svg-secondary" x="14" y="12" width="7" height="9" rx="1" stroke="#adc6ff" />
+                <rect class="svg-primary" x="3" y="16" width="7" height="5" rx="1" stroke="#4edea3" />
+              </svg>
+              <span>Command Center</span>
+            </button>
+          </li>
+          <li>
+            <!-- Locate this button in index.html and update the SVG inside it -->
+<button id="nav-eco-arena" class="nav-item" data-target="view-eco-arena">
+  <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Trophy Cup (Primary Green) with Sprout -->
+    <path class="svg-primary" d="M6 4h12v7c0 3.31-2.69 6-6 6s-6-2.69-6-6V4Z" stroke="#4edea3" />
+    <path class="svg-primary" d="M12 7c1.5-2 3.5-2 4.5 1-1.5 0-3 .5-4.5-1Z" stroke="#4edea3" fill="rgba(78, 222, 163, 0.2)" />
+    
+    <!-- Trophy Base, Stand, and Side Handles (Secondary Blue) -->
+    <path class="svg-secondary" d="M6 20h12" stroke="#adc6ff" />
+    <path class="svg-secondary" d="M12 17v3" stroke="#adc6ff" />
+    <path class="svg-secondary" d="M6 7H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H6" stroke="#adc6ff" />
+    <path class="svg-secondary" d="M18 7h2.5A1.5 1.5 0 0 0 22 5.5v-1A1.5 1.5 0 0 0 20.5 3H18" stroke="#adc6ff" />
+  </svg>
+  <span>Eco Arena</span>
+</button>
+          </li>
+          <li>
+            <button id="nav-notifications" class="nav-item" data-target="view-notifications">
+              <div class="icon-badge-wrapper">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path class="svg-secondary" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#adc6ff" />
+                  <path class="svg-primary" d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#4edea3" />
+                </svg>
+                <span class="notification-dot"></span>
+              </div>
+              <span>Notifications</span>
+            </button>
+          </li>
+          <li>
+            <button id="nav-profile" class="nav-item" data-target="view-profile">
+              <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path class="svg-secondary" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#adc6ff" />
+                <circle class="svg-primary" cx="12" cy="7" r="4" stroke="#4edea3" />
+              </svg>
+              <span>Profile</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-actions">
+        <button id="btn-log-impact-sidebar" class="btn btn-primary btn-full flex-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Log Impact</span>
+        </button>
+      </div>
+
+      <div class="sidebar-profile">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3b82f6" />
+                  <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="48" fill="url(#avatarGrad)" />
+              <circle cx="50" cy="38" r="18" fill="#0f172a" />
+              <path d="M20 78C20 62 33 58 50 58C67 58 80 62 80 78C80 84 74 86 50 86C26 86 20 84 20 78Z"
+                fill="#0f172a" />
+              <circle cx="80" cy="25" r="8" fill="#ffb95f" />
+              <text x="80" y="29" font-family="Space Grotesk" font-size="10" font-weight="bold" fill="#000"
+                text-anchor="middle">42</text>
+            </svg>
+          </div>
+          <div class="profile-info">
+            <h4 class="profile-name">Alex Chen</h4>
+            <p class="profile-title">Guardian Level 42</p>
+          </div>
+        </div>
+
+        <!-- Live Insight Container -->
+        <div class="live-insight-card">
+          <div class="insight-header">
+            <span class="live-tag">
+              <span class="live-pulse"></span>
+              LIVE INSIGHT
+            </span>
+          </div>
+          <p id="live-insight-text" class="insight-text">Tip: Switching to LED bulbs can save 1.2kg CO2 today.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Mobile Top Bar -->
+      <header class="mobile-header">
+        <button id="mobile-menu-toggle" class="mobile-menu-btn" aria-label="Open menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span class="mobile-brand-title">Karbon.io</span>
+        <div class="mobile-avatar-placeholder"></div>
+      </header>
+
+      <!-- View: Command Center (Dashboard) -->
+      <section id="view-command-center" class="content-view active">
+
+        <!-- Daily Summary Module -->
+        <div class="module summary-module card-level-2">
+          <div class="summary-left">
+            <div class="summary-icon-glow">
+              <span id="trees-counter" class="trees-count">12</span>
+            </div>
+            <div class="summary-details">
+              <h2 class="module-title">Daily Summary</h2>
+              <p class="module-subtitle">Systems optimal • <span class="highlight-green">Impact equal to <span
+                    id="summary-trees-text">12</span> trees planted this month 🌲</span></p>
+            </div>
+          </div>
+          <div class="summary-right">
+            <div class="toggle-pill-group">
+              <button class="toggle-pill active" id="btn-toggle-today">TODAY</button>
+              <button class="toggle-pill" id="btn-toggle-week">WEEK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Layout Grid -->
+        <div class="grid-3-col spacing-lg-margin">
+
+          <!-- Commute Module -->
+          <div class="module category-card card-level-2" id="card-commute">
+            <div class="card-header">
+              <h3 class="card-title flex-align-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="mr-xs">
+                  <path class="svg-secondary"
+                    d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h1"
+                    stroke="#adc6ff" />
+                  <circle class="svg-primary" cx="7.5" cy="17.5" r="2.5" stroke="#4edea3" />
+                  <circle class="svg-primary" cx="16.5" cy="17.5" r="2.5" stroke="#4edea3" />
+                </svg>
+                COMMUTE
+              </h3>
+            </div>
+            <div class="card-body grid-2x2">
+              <button class="activity-btn flex-col" data-category="commute" data-value="walk" id="btn-commute-walk">
+                <span class="activity-icon">🚶</span>
+                <span class="activity-label">Walk</span>
+              </button>
+              <button class="activity-btn flex-col active" data-category="commute" data-value="bike"
+                id="btn-commute-bike">
+                <span class="activity-icon">🚲</span>
+                <span class="activity-label">Bike</span>
+              </button>
+              <button class="activity-btn flex-col" data-category="commute" data-value="transit"
+                id="btn-commute-transit">
+                <span class="activity-icon">🚌</span>
+                <span class="activity-label">Transit</span>
+              </button>
+              <button class="activity-btn flex-col" data-category="commute" data-value="car" id="btn-commute-car">
+                <span class="activity-icon">🚗</span>
+                <span class="activity-label">Car</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Meals Module -->
+          <div class="module category-card card-level-2" id="card-meals">
+            <div class="card-header">
+              <h3 class="card-title flex-align-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="mr-xs">
+                  <path class="svg-secondary" d="M12 2v20" stroke="#adc6ff" />
+                  <path class="svg-primary" d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="#4edea3" />
+                </svg>
+                MEALS
+              </h3>
+            </div>
+            <div class="card-body flex-col-list">
+              <button class="activity-list-btn active" data-category="meals" data-value="vegan" id="btn-meals-vegan">
+                <span class="activity-icon">🌿</span>
+                <span class="activity-label">Vegan</span>
+              </button>
+              <button class="activity-list-btn" data-category="meals" data-value="vegetarian" id="btn-meals-vegetarian">
+                <span class="activity-icon">🥛</span>
+                <span class="activity-label">Vegetarian</span>
+              </button>
+              <button class="activity-list-btn" data-category="meals" data-value="meat-light" id="btn-meals-meat-light">
+                <span class="activity-icon">🍖</span>
+                <span class="activity-label">Meat-light</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Energy Module -->
+          <div class="module category-card card-level-2" id="card-energy">
+            <div class="card-header">
+              <h3 class="card-title flex-align-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="mr-xs">
+                  <path class="svg-secondary" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#adc6ff" />
+                </svg>
+                ENERGY
+              </h3>
+            </div>
+            <div class="card-body flex-col-list justify-center">
+              <div class="toggle-control-item">
+                <span class="toggle-label flex-align-center">
+                  <span class="bullet-green"></span>
+                  High Efficiency
+                </span>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggle-energy-efficiency">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-control-item">
+                <span class="toggle-label flex-align-center">
+                  <span class="bullet-inactive" id="bullet-lights"></span>
+                  All Lights Off
+                </span>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggle-energy-lights">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Route Planner Module -->
+        <div class="module route-planner-module card-level-2 spacing-lg-margin">
+          <div class="route-left">
+            <div class="route-header">
+              <h3 class="route-title">Route Planner</h3>
+              <p class="route-subtitle">Real-time CO2 simulation for your next trip.</p>
+            </div>
+
+            <div class="transport-selector">
+              <button class="transport-option" data-mode="car" id="btn-route-car">
+                <span class="mode-icon">🚗</span>
+                <span class="mode-label">CAR</span>
+              </button>
+              <button class="transport-option" data-mode="bus" id="btn-route-bus">
+                <span class="mode-icon">🚌</span>
+                <span class="mode-label">BUS</span>
+              </button>
+              <button class="transport-option active" data-mode="ebike" id="btn-route-ebike">
+                <span class="mode-icon">⚡🚲</span>
+                <span class="mode-label">E-BIKE</span>
+              </button>
+            </div>
+
+            <div class="route-fields">
+              <label class="route-field">
+                <span class="label-mono">FROM</span>
+                <select id="route-origin-input" class="route-input select-dropdown">
+                  <option value="home">Home (Kensington)</option>
+                  <option value="office">Office (City of London)</option>
+                  <option value="visiting place">Visiting Place (London Eye)</option>
+                </select>
+              </label>
+              <label class="route-field">
+                <span class="label-mono">TO</span>
+                <select id="route-destination-input" class="route-input select-dropdown">
+                  <option value="home">Home (Kensington)</option>
+                  <option value="office" selected>Office (City of London)</option>
+                  <option value="visiting place">Visiting Place (London Eye)</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="route-action-bar">
+              <div class="savings-badge">
+                <span class="savings-icon">🍃</span>
+                <div class="savings-text-wrapper">
+                  <span class="savings-tag">Savings</span>
+                  <span id="savings-amount" class="savings-number">1.7kg CO2</span>
+                </div>
+              </div>
+              <button id="btn-confirm-trip" class="btn btn-primary">
+                <span>Confirm Trip</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="route-right">
+            <div class="map-slider-container">
+              <!-- Default Map source shifted to London -->
+              <iframe id="route-map-frame" class="route-map-frame" title="Route map" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.22000%2C51.45000%2C-0.05000%2C51.55000&amp;layer=mapnik">
+              </iframe>
+              <div class="map-grid-overlay"></div>
+              <div class="map-labels">
+                <span class="map-node-label label-mono" id="route-origin-label">Home</span>
+                <span class="map-node-label label-mono" id="route-destination-label">Office</span>
+              </div>
+              <!-- Completely removed slider track elements (removing the green horizontal line) -->
+              <div class="simulation-data label-mono">
+                Distance: <span id="route-distance-val">11.5 km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- View: Eco Arena (Competition / Leaderboard) -->
+      <section id="view-eco-arena" class="content-view">
+
+        <!-- Top Navigation Filter Bar -->
+        <div class="arena-topbar">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="leaderboard-search" class="search-input" placeholder="Find Guardians...">
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-btn" aria-label="Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg>
+            </button>
+            <button class="icon-btn" aria-label="Help & Rules">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3">
+                  </line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-2-col-asym">
+
+          <!-- Left Dashboard Panels -->
+          <div class="flex-col-spacing">
+
+            <!-- Current League Card -->
+            <div class="module card-level-2 p-md" id="card-league">
+              <div class="league-header">
+                <div>
+                  <span class="meta-tag label-mono">CURRENT LEAGUE</span>
+                  <h3 class="league-title">Stratosphere League</h3>
+                </div>
+                <div class="league-icon-glow">
+                  <!-- Rocket SVG Icon -->
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path class="svg-secondary" d="M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h6.5c0-2.31-1-4.24-2.5-5.5Z"
+                      stroke="#adc6ff" />
+                    <path class="svg-primary"
+                      d="M12 2C7.5 2 4 5.5 4 10c0 4.5 2 7.5 4.5 9h7c2.5-1.5 4.5-4.5 4.5-9 0-4.5-3.5-8-8-8Z"
+                      stroke="#4edea3" />
+                    <path class="svg-secondary" d="M19.5 16.5c1.5 1.26 2.5 3.19 2.5 5.5h-6.5c0-2.31 1-4.24 2.5-5.5Z"
+                      stroke="#adc6ff" />
+                    <circle class="svg-secondary" cx="12" cy="10" r="2" fill="#adc6ff" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="league-rank-stats">
+                <span class="rank-number">#14</span>
+                <span class="rank-divider">/</span>
+                <span class="rank-total label-mono">1,250 Guardians</span>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-labels">
+                  <span class="progress-target label-mono">NEXT RANK: IONOSPHERE</span>
+                  <span id="league-progress-pct" class="progress-pct label-mono">85%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="league-progress-fill" style="width: 85%;"></div>
+                </div>
+              </div>
+
+              <div class="countdown-timer label-mono">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  class="mr-xs">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                Countdown: 2d 14h 05m remaining
+              </div>
+
+              <button class="btn btn-secondary btn-full mt-md">View League Rules</button>
+            </div>
+
+            <!-- Family Circle Card -->
+            <div class="module card-level-2 p-md" id="card-family">
+              <div class="family-header">
+                <h3 class="card-title flex-align-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    class="mr-xs">
+                    <circle class="svg-primary" cx="18" cy="5" r="3" stroke="#4edea3" />
+                    <circle class="svg-secondary" cx="6" cy="12" r="3" stroke="#adc6ff" />
+                    <circle class="svg-primary" cx="18" cy="19" r="3" stroke="#4edea3" />
+                    <path class="svg-secondary" d="M6 15v3a3 3 0 0 0 3 3h6" stroke="#adc6ff" />
+                    <path class="svg-secondary" d="M18 8v8" stroke="#adc6ff" />
+                    <path class="svg-secondary" d="M6 9V6a3 3 0 0 1 3-3h6" stroke="#adc6ff" />
+                  </svg>
+                  Family Circle
+                </h3>
+              </div>
+
+              <div class="family-list">
+                <div class="family-member">
+                  <div class="member-info">
+                    <span class="member-name">Alex (You)</span>
+                    <span class="member-val label-mono highlight-green" id="family-alex-val">12.4% Reduction</span>
+                  </div>
+                  <div class="progress-track sm">
+                    <div class="progress-fill fill-primary" id="family-alex-fill" style="width: 12.4%;"></div>
+                  </div>
+                </div>
+                <div class="family-member">
+                  <div class="member-info">
+                    <span class="member-name">Sarah</span>
+                    <span class="member-val label-mono highlight-orange">8.1% Reduction</span>
+                  </div>
+                  <div class="progress-track sm">
+                    <div class="progress-fill fill-tertiary" style="width: 8.1%;"></div>
+                  </div>
+                </div>
+                <div class="family-member">
+                  <div class="member-info">
+                    <span class="member-name">Marcus</span>
+                    <span class="member-val label-mono highlight-green">15.2% Reduction</span>
+                  </div>
+                  <div class="progress-track sm">
+                    <div class="progress-fill fill-primary" style="width: 15.2%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn-secondary btn-full mt-md">Manage Circle</button>
+            </div>
+
+          </div>
+
+          <!-- Leaderboard Column -->
+          <div class="module card-level-2 p-md" id="card-leaderboard">
+            <div class="leaderboard-header">
+              <h3 class="card-title">Global Leaderboard</h3>
+              <div class="toggle-pill-group">
+                <button class="toggle-pill active" id="btn-leaderboard-alltime">ALL TIME</button>
+                <button class="toggle-pill" id="btn-leaderboard-month">THIS MONTH</button>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="leaderboard-table">
+                <thead>
+                  <tr>
+                    <th class="label-mono">RANK</th>
+                    <th class="label-mono">GUARDIAN</th>
+                    <th class="label-mono text-center">TIER</th>
+                    <th class="label-mono text-right">CO2 PREVENTED</th>
+                    <th class="label-mono text-center">BADGE</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                  <!-- Row 1 -->
+                  <tr data-name="Elena Greenheart">
+                    <td>
+                      <span class="rank-badge gold">1</span>
+                    </td>
+                    <td>
+                      <div class="table-user">
+                        <div class="user-avatar">
+                          <svg width="32" height="32" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="#1e293b" stroke="#adc6ff" stroke-width="2" />
+                            <circle cx="50" cy="38" r="16" fill="#3b82f6" />
+                            <path d="M22 75C22 62 33 58 50 58C67 58 78 62 78 75C78 82 72 84 50 84C28 84 22 82 22 75Z"
+                              fill="#10b981" />
+                          </svg>
+                        </div>
+                        <div class="user-details">
+                          <span class="user-name">Elena Greenheart</span>
+                          <span class="user-location">Oslo, Norway</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="tier-badge tier-elite">ELITE GUARDIAN</span>
+                    </td>
+                    <td class="text-right label-mono highlight-green font-bold">2,482.5 kg</td>
+                    <td class="text-center">
+                      <span class="badge-icon gold-star" title="Guardian Star">⭐</span>
+                    </td>
+                  </tr>
+                  <!-- Row 2 -->
+                  <tr data-name="Hiroshi Tanaka">
+                    <td>
+                      <span class="rank-badge silver">2</span>
+                    </td>
+                    <td>
+                      <div class="table-user">
+                        <div class="user-avatar">
+                          <svg width="32" height="32" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="#1e293b" stroke="#adc6ff" stroke-width="2" />
+                            <circle cx="50" cy="38" r="16" fill="#f59e0b" />
+                            <path d="M22 75C22 62 33 58 50 58C67 58 78 62 78 75C78 82 72 84 50 84C28 84 22 82 22 75Z"
+                              fill="#3b82f6" />
+                          </svg>
+                        </div>
+                        <div class="user-details">
+                          <span class="user-name">Hiroshi Tanaka</span>
+                          <span class="user-location">Kyoto, Japan</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="tier-badge tier-netzero">NET-ZERO HERO</span>
+                    </td>
+                    <td class="text-right label-mono highlight-green font-bold">2,310.1 kg</td>
+                    <td class="text-center">
+                      <span class="badge-dash">-</span>
+                    </td>
+                  </tr>
+                  <!-- Row 3 -->
+                  <tr data-name="Sofia Rossi">
+                    <td>
+                      <span class="rank-badge bronze">3</span>
+                    </td>
+                    <td>
+                      <div class="table-user">
+                        <div class="user-avatar">
+                          <svg width="32" height="32" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="#1e293b" stroke="#adc6ff" stroke-width="2" />
+                            <circle cx="50" cy="38" r="16" fill="#10b981" />
+                            <path d="M22 75C22 62 33 58 50 58C67 58 78 62 78 75C78 82 72 84 50 84C28 84 22 82 22 75Z"
+                              fill="#ffb95f" />
+                          </svg>
+                        </div>
+                        <div class="user-details">
+                          <span class="user-name">Sofia Rossi</span>
+                          <span class="user-location">Milan, Italy</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="tier-badge tier-carbon">CARBON KNIGHT</span>
+                    </td>
+                    <td class="text-right label-mono highlight-green font-bold">2,155.8 kg</td>
+                    <td class="text-center">
+                      <span class="badge-dash">-</span>
+                    </td>
+                  </tr>
+                  <!-- Row 4 (Jordan Smith) -->
+                  <tr data-name="Jordan Smith">
+                    <td>
+                      <span class="rank-badge general">4</span>
+                    </td>
+                    <td>
+                      <div class="table-user">
+                        <div class="user-avatar">
+                          <svg width="32" height="32" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="#1e293b" stroke="#adc6ff" stroke-width="2" />
+                            <circle cx="50" cy="38" r="16" fill="#e2e8f0" />
+                            <path d="M22 75C22 62 33 58 50 58C67 58 78 62 78 75C78 82 72 84 50 84C28 84 22 82 22 75Z"
+                              fill="#64748b" />
+                          </svg>
+                        </div>
+                        <div class="user-details">
+                          <span class="user-name">Jordan Smith</span>
+                          <span class="user-location">Austin, USA</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="tier-badge tier-warrior">ECO WARRIOR</span>
+                    </td>
+                    <td class="text-right label-mono highlight-green font-bold">1,980.4 kg</td>
+                    <td class="text-center">
+                      <span class="badge-icon shield-badge" title="Warrior Shield">🛡️</span>
+                    </td>
+                  </tr>
+                  <!-- Row 14 (User: Alex Chen) -->
+                  <tr data-name="Alex Chen" class="leaderboard-highlight-row">
+                    <td>
+                      <span class="rank-badge general highlight">14</span>
+                    </td>
+                    <td>
+                      <div class="table-user">
+                        <div class="user-avatar">
+                          <svg width="32" height="32" viewBox="0 0 100 100">
+                            <defs>
+                              <linearGradient id="avatarGradTable" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#10b981" />
+                              </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="48" fill="url(#avatarGradTable)" />
+                            <circle cx="50" cy="38" r="16" fill="#0f172a" />
+                            <path d="M22 75C22 62 33 58 50 58C67 58 78 62 78 75C78 82 72 84 50 84C28 84 22 82 22 75Z"
+                              fill="#0f172a" />
+                          </svg>
+                        </div>
+                        <div class="user-details">
+                          <span class="user-name font-bold">Alex Chen (You)</span>
+                          <span class="user-location">Kensington , London</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="tier-badge tier-netzero">NET-ZERO HERO</span>
+                    </td>
+                    <td id="leaderboard-alex-co2" class="text-right label-mono highlight-green font-bold">1,894.2 kg
+                    </td>
+                    <td class="text-center">
+                      <span class="badge-icon shield-badge" title="Warrior Shield">🛡️</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Badges Row -->
+        <div class="badges-row-module mt-lg">
+          <div class="badges-row-list">
+
+            <!-- Badge 1 -->
+            <div class="rank-badge-card unlocked">
+              <div class="badge-icon-container bg-primary-opacity">
+                <!-- Sprout SVG -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path class="svg-primary" d="M12 22V12" stroke="#4edea3" />
+                  <path class="svg-primary" d="M12 12c2.5-4 5.5-4 8 0-3.5 0-6 1.5-8 0Z" stroke="#4edea3"
+                    fill="rgba(78, 222, 163, 0.2)" />
+                  <path class="svg-secondary" d="M12 15c-2.5-3-5.5-3-8 0 3.5 0 6 1 8 0Z" stroke="#adc6ff"
+                    fill="rgba(173, 198, 255, 0.2)" />
+                </svg>
+              </div>
+              <div class="badge-text-container">
+                <span class="badge-status unlocked">UNLOCKED</span>
+                <h4 class="badge-name">Soil Master</h4>
+              </div>
+            </div>
+
+            <!-- Badge 2 -->
+            <div class="rank-badge-card unlocked">
+              <div class="badge-icon-container bg-primary-opacity">
+                <!-- EV Charging/Volt SVG -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path class="svg-primary" d="M18.66 17a2 2 0 1 1-3.66 0c0-1.8 2-3 2-3s1.66 1.2 1.66 3Z"
+                    stroke="#4edea3" fill="rgba(78, 222, 163, 0.2)" />
+                  <path class="svg-secondary" d="M5 21V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12" stroke="#adc6ff" />
+                  <path class="svg-primary" d="M9 11h4v4H9z" stroke="#4edea3" />
+                </svg>
+              </div>
+              <div class="badge-text-container">
+                <span class="badge-status unlocked">UNLOCKED</span>
+                <h4 class="badge-name">Volt Voyager</h4>
+              </div>
+            </div>
+
+            <!-- Badge 3 -->
+            <div class="rank-badge-card locked">
+              <div class="badge-icon-container bg-locked">
+                <!-- Sun/Solar SVG -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle class="svg-muted" cx="12" cy="12" r="4" stroke="#4a5568" />
+                  <path class="svg-muted"
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                    stroke="#4a5568" />
+                </svg>
+              </div>
+              <div class="badge-text-container">
+                <span class="badge-status locked">LOCKED</span>
+                <h4 class="badge-name">Solar Soul</h4>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- View: Notifications (Simple placeholder view) -->
+      <section id="view-notifications" class="content-view">
+        <div class="module card-level-2 p-md flex-center flex-col text-center" style="min-height: 300px;">
+          <h3 class="headline-text mb-sm">Notifications</h3>
+          <p class="body-text text-muted max-w-sm mb-md">Stay up to date with updates from the global community,
+            challenge invites, and new tier announcements.</p>
+          <div class="notification-list-placeholder">
+            <div class="notification-item-row">
+              <div class="notif-bullet active"></div>
+              <div class="notif-content">
+                <p class="notif-text"><strong>Elena Greenheart</strong> just overtook you in the Stratosphere League!
+                </p>
+                <span class="notif-time label-mono">2h ago</span>
+              </div>
+            </div>
+            <div class="notification-item-row">
+              <div class="notif-bullet"></div>
+              <div class="notif-content">
+                <p class="notif-text">Daily challenge complete! <strong>+1.2kg CO2</strong> reduction recorded.</p>
+                <span class="notif-time label-mono">1d ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Profile (Simple placeholder view) -->
+      <section id="view-profile" class="content-view">
+        <div class="module card-level-2 p-md" style="min-height: 400px;">
+          <div class="profile-header-view">
+            <div class="profile-large-avatar">
+              <svg width="80" height="80" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="48" fill="url(#avatarGrad)" />
+                <circle cx="50" cy="38" r="18" fill="#0f172a" />
+                <path d="M20 78C20 62 33 58 50 58C67 58 80 62 80 78C80 84 74 86 50 86C26 86 20 84 20 78Z"
+                  fill="#0f172a" />
+              </svg>
+            </div>
+            <div class="profile-name-group">
+              <h2 class="profile-main-name">Alex Chen</h2>
+              <p class="profile-main-title">Kensington, London • Guardian Level 42</p>
+              <span class="badge-chip label-mono">GOLD TIER GUARDIAN</span>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="profile-body-stats grid-3-col">
+            <div class="stat-card">
+              <span class="stat-num label-mono" id="profile-stat-co2">1,894.2 kg</span>
+              <span class="stat-label">Total CO2 Prevented</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num label-mono" id="profile-stat-trees">94.7</span>
+              <span class="stat-label">Trees Equivalent 🌲</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num label-mono">14th</span>
+              <span class="stat-label">Global Leaderboard Rank</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Log Carbon Impact Dialog (Modal Overlay) -->
+  <dialog id="log-impact-modal" class="modal-overlay">
+    <div class="modal-content card-level-3">
+      <div class="modal-header">
+        <h3 class="modal-title">Log Carbon Impact</h3>
+        <button id="btn-close-modal" class="close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="body-text mb-md text-muted">Select an environmental action to record in your ledger and boost your
+          ranking in the Stratosphere League.</p>
+        <div class="form-group">
+          <label for="custom-impact-select" class="form-label label-mono">CHOOSE ACTION</label>
+          <div class="input-select-wrapper">
+            <select id="custom-impact-select" class="form-select">
+              <option value="led" data-co2="1.2">Switch to LED Bulbs (+1.2kg CO2)</option>
+              <option value="tree" data-co2="15.0">Plant a Young Tree (+15.0kg CO2)</option>
+              <option value="recycle" data-co2="0.8">Recycle Plastic/Glass Pack (+0.8kg CO2)</option>
+              <option value="bag" data-co2="0.5">Use Reusable Bags (+0.5kg CO2)</option>
+              <option value="compost" data-co2="2.1">Compost Kitchen Waste (+2.1kg CO2)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-log" class="btn btn-secondary">Cancel</button>
+        <button id="btn-confirm-log" class="btn btn-primary">Log Selected Impact</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Overlay Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JS Scripts -->
+  <script type="module" src="/app.js"></script>
+</body>
+
+</html>
