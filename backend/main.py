@@ -103,6 +103,9 @@ class RoutePlanRequest(BaseModel):
     destination: str = Field(..., min_length=1, max_length=256)
     chosen_mode: str = Field(..., min_length=1, max_length=64)
     baseline_mode: str = Field(default="car", max_length=64)
+    distance_km: Optional[float] = None
+    co2_saved_kg: Optional[float] = None
+    duration_s: Optional[int] = None
 
     @validator('user_id')
     def validate_user_id(cls, v):
@@ -229,7 +232,7 @@ def plan_route_simulation(payload: RoutePlanRequest):
         )
         return route_details
     except Exception as e:
-        logger.error(f"Error planning route: {str(e)}", exc_info=True)
+        print(f"Error planning route: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unable to plan route. Please check your input."
@@ -242,6 +245,20 @@ def plan_and_log_route(payload: RoutePlanRequest):
     if not user:
         raise HTTPException(status_code=404, detail="User reference not found.")
 
+    # If cached values are provided, commit them directly (0ms external API overhead)
+    if payload.distance_km is not None and payload.co2_saved_kg is not None:
+        db.insert_route_log(
+            user_id=payload.user_id,
+            origin=payload.origin.capitalize(),
+            destination=payload.destination.capitalize(),
+            distance_km=payload.distance_km,
+            mode=payload.chosen_mode,
+            co2_saved_kg=payload.co2_saved_kg,
+            maps_duration_s=payload.duration_s or 0
+        )
+        return {"status": "success", "message": "Cached route logged successfully"}
+
+    # Fallback to live API if not pre-calculated
     try:
         route_details = maps_service.process_commute_savings(
             origin=payload.origin,
@@ -249,21 +266,18 @@ def plan_and_log_route(payload: RoutePlanRequest):
             chosen_mode=payload.chosen_mode,
             baseline_mode=payload.baseline_mode
         )
+        db.insert_route_log(
+            user_id=payload.user_id,
+            origin=route_details["origin_addressed"],
+            destination=route_details["destination_addressed"],
+            distance_km=route_details["distance_km"],
+            mode=payload.chosen_mode,
+            co2_saved_kg=route_details["co2_saved_kg"],
+            maps_duration_s=route_details["duration_s"]
+        )
+        return route_details
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    db.insert_route_log(
-        user_id=payload.user_id,
-        origin=route_details["origin_addressed"],
-        destination=route_details["destination_addressed"],
-        distance_km=route_details["distance_km"],
-        mode=payload.chosen_mode,
-        co2_saved_kg=route_details["co2_saved_kg"],
-        maps_duration_s=route_details["duration_s"]
-    )
-
-    return route_details
-
 
 @app.get("/api/leaderboard/{circle_id}")
 def get_leaderboard(circle_id: str, user_id: str):

@@ -13,6 +13,7 @@ from typing import Optional, Dict, Any, List
 
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 # Self-healing key path resolution: search in current folder, parent, and grandparent
 KEY_PATH = None
@@ -104,8 +105,12 @@ def update_user_co2(user_id: str, delta_kg: float) -> None:
 
 
 def get_circle_members(circle_id: str) -> List[Dict[str, Any]]:
-    """Retrieves all user documents matching a specific family circle ID."""
-    query = db_client.collection("users").where("family_circle_id", "==", circle_id).get()
+    """Retrieves all user documents matching a specific family circle ID using FieldFilter."""
+    query = (
+        db_client.collection("users")
+        .where(filter=FieldFilter("family_circle_id", "==", circle_id))
+        .get()
+    )
     return [doc.to_dict() for doc in query]
 
 
@@ -171,20 +176,55 @@ def insert_route_log(
 
 
 def get_weekly_logs(user_id: str, days: int = 7) -> List[Dict[str, Any]]:
-    """Retrieves activity logs for the past N days for a user."""
+    """Retrieves activity logs for the past N days using index-free local memory filtering."""
     cutoff_date = (date.today() - timedelta(days=days)).isoformat()
     
+    # Uses the modern FieldFilter class to silence all deprecation warnings
+    query = (
+        db_client.collection("activity_logs")
+        .where(filter=FieldFilter("user_id", "==", user_id))
+        .get()
+    )
+    
+    logs = []
+    for doc in query:
+       data = doc.to_dict()
+       if data.get("log_date", "") >= cutoff_date:
+           logs.append(data)
+           
+    logs.sort(key=lambda x: x.get("log_date", ""), reverse=True)
+    return logs
+    """Retrieves activity logs for the past N days using index-free local memory filtering."""
+    cutoff_date = (date.today() - timedelta(days=days)).isoformat()
+    
+    # Query only by user_id (this uses Firestore's built-in single-field index)
     query = (
         db_client.collection("activity_logs")
         .where("user_id", "==", user_id)
         .get()
     )
     
+    # Filter the dates locally inside Python's memory
     logs = []
     for doc in query:
         data = doc.to_dict()
         if data.get("log_date", "") >= cutoff_date:
             logs.append(data)
             
+    # Sort descending by date
+    logs.sort(key=lambda x: x.get("log_date", ""), reverse=True)
+    return logs
+    """Retrieves activity logs for the past N days using fully-indexed queries."""
+    cutoff_date = (date.today() - timedelta(days=days)).isoformat()
+    
+    # Highly efficient composite query (executes at database-level)
+    query = (
+        db_client.collection("activity_logs")
+        .where("user_id", "==", user_id)
+        .where("log_date", ">=", cutoff_date)
+        .get()
+    )
+    
+    logs = [doc.to_dict() for doc in query]
     logs.sort(key=lambda x: x.get("log_date", ""), reverse=True)
     return logs

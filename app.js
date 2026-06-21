@@ -175,15 +175,18 @@ async function logCustomImpact(userId, actionKey, label) {
   });
 }
 
-async function logRoute(userId, mode, distanceKm) {
+async function logRoute(userId, mode, routeData) {
   return apiRequest("/api/logs/route", {
     method: "POST",
     body: JSON.stringify({
       user_id: userId,
-      origin: state.routeOrigin,
-      destination: state.routeDestination,
+      origin: routeData.origin,
+      destination: routeData.destination,
       chosen_mode: mode,
-      baseline_mode: "car"
+      baseline_mode: "car",
+      distance_km: routeData.distance_km,
+      co2_saved_kg: routeData.co2_saved_kg,
+      duration_s: routeData.duration_s
     })
   });
 }
@@ -923,11 +926,11 @@ function setupRoutePlanner() {
     updateRouteEndpoints();
   }, 500);
 
-  // Confirm Trip Button Click Action
+  // Confirm Trip Button Click Action (Bypasses redundant Google Maps API call)
   DOM.btnConfirmTrip.addEventListener("click", async () => {
-    const factor = ROUTE_FACTORS[state.routeMode];
-    let savings = state.routeDistance * factor;
-    
+    // Exit if no active route coords are loaded in state
+    if (!state.routeStartCoords) return;
+
     DOM.btnConfirmTrip.classList.add("success-ripple-active");
     setTimeout(() => {
       DOM.btnConfirmTrip.classList.remove("success-ripple-active");
@@ -935,20 +938,22 @@ function setupRoutePlanner() {
 
     DOM.btnConfirmTrip.disabled = true;
 
+    const currentSavingsText = DOM.savingsAmount ? DOM.savingsAmount.textContent : "0.0kg";
+    const numericSavings = parseFloat(currentSavingsText) || 0.0;
+
     try {
-      const route = await logRoute(CURRENT_USER_ID, state.routeMode, state.routeDistance);
-      savings = route.co2_saved_kg;
-      
-      state.routeDistance = route.distance_km;
-      state.routeStartCoords = route.start_coords;
-      state.routeEndCoords = route.end_coords;
-      
-      hideStaticOverlays();
-      updateRoutePlanner();
+      // Pass the pre-calculated details from your local state cache
+      await logRoute(CURRENT_USER_ID, state.routeMode, {
+        origin: state.routeOrigin,
+        destination: state.routeDestination,
+        distance_km: state.routeDistance,
+        co2_saved_kg: numericSavings,
+        duration_s: state.routeDuration || 0
+      });
       
       await syncLeaderboardFromBackend();
       await refreshLiveAssistant();
-      showToast(`Trip logged! Saved ${savings.toFixed(1)}kg CO2 today. 🌲`);
+      showToast(`Trip logged! Saved ${state.routeDistance.toFixed(1)}kg CO2 today. 🌲`);
     } catch (error) {
       console.error("Error logging route:", error);
 
