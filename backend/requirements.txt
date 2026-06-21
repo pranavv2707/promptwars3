@@ -3,3 +3,6 @@ uvicorn
 google-genai
 firebase-admin
 python-dotenv
+pytest
+pytest-asyncio
+httpx

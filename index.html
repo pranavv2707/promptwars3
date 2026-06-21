@@ -15,6 +15,7 @@
 
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="accessibility.css">
   
   <!-- Inline style override to ensure select dropdowns match the dark theme inputs -->
   <style>
@@ -37,8 +38,11 @@
 
 <body>
 
+  <!-- Skip to main content link for keyboard users -->
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
   <!-- Dynamic Animated Live Map Background -->
-  <canvas id="live-map-canvas"></canvas>
+  <canvas id="live-map-canvas" aria-hidden="true"></canvas>
 
   <!-- App Wrapper -->
   <div class="app-container">
@@ -174,7 +178,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="main-content">
+    <main class="main-content" id="main-content" role="main">
 
       <!-- Mobile Top Bar -->
       <header class="mobile-header">

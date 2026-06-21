@@ -3,8 +3,67 @@
    ========================================================================== */
 
 // --------------------------------------------------------------------------
-// 1. Global State Management
+// 1. Global State Management & Security Utilities
 // --------------------------------------------------------------------------
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Keyboard accessibility support
+function setupKeyboardNavigation() {
+  document.addEventListener('keydown', (e) => {
+    // Alt+1-4 for navigation (accessibility shortcuts)
+    if (e.altKey && e.key >= '1' && e.key <= '4') {
+      e.preventDefault();
+      const navItems = [
+        DOM.navBtnCommandCenter,
+        DOM.navBtnEcoArena,
+        DOM.navBtnNotifications,
+        DOM.navBtnProfile
+      ];
+      const navItem = navItems[parseInt(e.key) - 1];
+      if (navItem) navItem.click();
+    }
+
+    // Escape to close modals
+    if (e.key === 'Escape' && DOM.logImpactModal && DOM.logImpactModal.classList.contains('show')) {
+      closeLogImpactModal();
+    }
+  });
+}
+
+// Enhance focus management for modals
+function enhanceModalAccessibility(modal) {
+  if (!modal) return;
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'modal-title');
+
+  const closeBtn = modal.querySelector('.btn-close, .btn-cancel, [aria-label="Close"]');
+  if (closeBtn) {
+    closeBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        closeBtn.click();
+      }
+    });
+  }
+}
+
+// Add ARIA labels to button groups
+function enhanceButtonAccessibility(button, label) {
+  if (!button) return;
+  button.setAttribute('aria-label', label);
+  button.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      button.click();
+    }
+  });
+}
 
 // Bypasses the Vite empty proxy and connects directly to FastAPI on port 8000
 //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
@@ -970,8 +1029,8 @@ function renderLeaderboard() {
               </svg>
             </div>
             <div class="user-details">
-              <span class="user-name ${isUser ? 'font-bold' : ''}">${entry.name} ${isUser ? '(You)' : ''}</span>
-              <span class="user-location">${entry.location}</span>
+              <span class="user-name ${isUser ? 'font-bold' : ''}">${escapeHtml(entry.name)} ${isUser ? '(You)' : ''}</span>
+              <span class="user-location">${escapeHtml(entry.location)}</span>
             </div>
           </div>
         </td>
@@ -1096,23 +1155,36 @@ function setupModal() {
 // --------------------------------------------------------------------------
 // 9. Toast System
 // --------------------------------------------------------------------------
+// Toast notifications (safe rendering)
+// --------------------------------------------------------------------------
 function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "toast";
-  toast.innerHTML = `
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-    <span class="toast-message">${message}</span>
-  `;
-  
+
+  const svg = document.createElement("svg");
+  svg.setAttribute("width", "18");
+  svg.setAttribute("height", "18");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2.5");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.style.color = "var(--primary)";
+  svg.innerHTML = `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>`;
+
+  const span = document.createElement("span");
+  span.className = "toast-message";
+  span.textContent = message;
+
+  toast.appendChild(svg);
+  toast.appendChild(span);
   DOM.toastContainer.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.classList.add("show");
   }, 50);
-  
+
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => {
@@ -1162,7 +1234,24 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRoutePlanner();
   setupEcoArenaListeners();
   setupModal();
-  
+  setupKeyboardNavigation();
+
+  // Add ARIA labels to range slider
+  if (DOM.routeDistanceSlider) {
+    DOM.routeDistanceSlider.setAttribute('aria-label', 'Route distance in kilometers');
+    DOM.routeDistanceSlider.setAttribute('aria-valuemin', '1');
+    DOM.routeDistanceSlider.setAttribute('aria-valuemax', '50');
+    DOM.routeDistanceSlider.setAttribute('role', 'slider');
+  }
+
+  // Enhance modal accessibility
+  enhanceModalAccessibility(DOM.logImpactModal);
+
+  // Add ARIA labels to key buttons
+  enhanceButtonAccessibility(DOM.btnConfirmLog, 'Confirm log impact');
+  enhanceButtonAccessibility(DOM.btnCancelLog, 'Cancel log impact');
+  enhanceButtonAccessibility(DOM.btnConfirmTrip, 'Confirm trip');
+
   calculateDailySummary();
   updateRoutePlanner();
   updateEcoArenaView();

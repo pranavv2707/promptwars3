@@ -169,21 +169,23 @@ def insert_route_log(
 def get_weekly_logs(user_id: str, days: int = 7) -> List[Dict[str, Any]]:
     """Retrieves activity logs for the past N days for a user."""
     cutoff_date = (date.today() - timedelta(days=days)).isoformat()
-    
-    # Query only by user_id to bypass the composite index requirement
+
+    # Query with ordering and limit to improve efficiency
     query = (
         db_client.collection("activity_logs")
         .where("user_id", "==", user_id)
+        .order_by("log_date", direction=firestore.Query.DESCENDING)
+        .limit(100)
         .get()
     )
-    
-    # Filter by date locally in-memory
+
+    # Filter by date locally
     logs = []
     for doc in query:
         data = doc.to_dict()
         if data.get("log_date", "") >= cutoff_date:
             logs.append(data)
-            
-    # Sort descending by date
-    logs.sort(key=lambda x: x.get("log_date", ""), reverse=True)
+        else:
+            break  # Stop once past cutoff since ordered DESC
+
     return logs

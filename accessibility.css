@@ -1,0 +1,86 @@
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS FOR KARBON.IO
+   ============================================================================
+   Adds keyboard navigation, focus indicators, and ARIA support
+*/
+
+/* Focus Indicators - Visible keyboard navigation */
+:focus-visible {
+  outline: 3px solid #4edea3;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(78, 222, 163, 0.3);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #4edea3;
+  outline-offset: 2px;
+}
+
+/* Ensure focused elements are not hidden */
+.activity-list-btn:focus-visible,
+.transport-option:focus-visible,
+.btn:focus-visible {
+  z-index: 1;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #4edea3;
+  color: #0f172a;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 0 0 6px 0;
+  font-weight: bold;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Range slider accessibility */
+input[type="range"] {
+  vertical-align: middle;
+}
+
+input[type="range"]:focus-visible {
+  outline: 3px solid #4edea3;
+}
+
+/* Ensure toggle switches are keyboard accessible */
+.switch-toggle input:focus-visible {
+  outline: 2px solid #4edea3;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 4px;
+  }
+
+  .activity-list-btn.active,
+  .transport-option.active {
+    border: 2px solid #4edea3;
+  }
+}

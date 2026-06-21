@@ -14,4 +14,6 @@ env/
 
 backend/.env
 backend/firebase-key.json
+backend/karbon.dbvenv/
+.pytest_cache/
 backend/karbon.db

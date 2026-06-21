@@ -16,8 +16,15 @@ import os
 from typing import List, Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 
 import karbon_db as db
 import carbon_engine
@@ -47,36 +54,61 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS
+# Enable CORS with restricted origins
+allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
-# --- API Model Definitions ---
+# --- API Model Definitions with Validation ---
 class CustomLogRequest(BaseModel):
-    user_id: str
-    action_key: str
-    label: str
+    user_id: str = Field(..., min_length=1, max_length=128)
+    action_key: str = Field(..., min_length=1, max_length=64)
+    label: str = Field(default="", max_length=256)
+
+    @validator('user_id')
+    def validate_user_id(cls, v):
+        if not v.replace('_', '').replace('-', '').isalnum():
+            raise ValueError("Invalid user_id format")
+        return v
+
+    @validator('action_key')
+    def validate_action_key(cls, v):
+        valid_actions = {"led", "tree", "recycle", "bag", "compost"}
+        if v not in valid_actions:
+            raise ValueError(f"Invalid action_key. Must be one of {valid_actions}")
+        return v
 
 class DailyLogRequest(BaseModel):
-    user_id: str
-    commute_mode: str
-    meal_type: str
-    energy_actions: List[str]
-    notes: Optional[str] = ""
+    user_id: str = Field(..., min_length=1, max_length=128)
+    commute_mode: str = Field(..., min_length=1, max_length=64)
+    meal_type: str = Field(..., min_length=1, max_length=64)
+    energy_actions: list[str] = Field(default_factory=list)
+    notes: str = Field(default="", max_length=512)
 
+    @validator('user_id')
+    def validate_user_id(cls, v):
+        if not v.replace('_', '').replace('-', '').isalnum():
+            raise ValueError("Invalid user_id format")
+        return v
 
 class RoutePlanRequest(BaseModel):
-    user_id: str
-    origin: str
-    destination: str
-    chosen_mode: str
-    baseline_mode: Optional[str] = "car"
+    user_id: str = Field(..., min_length=1, max_length=128)
+    origin: str = Field(..., min_length=1, max_length=256)
+    destination: str = Field(..., min_length=1, max_length=256)
+    chosen_mode: str = Field(..., min_length=1, max_length=64)
+    baseline_mode: str = Field(default="car", max_length=64)
+
+    @validator('user_id')
+    def validate_user_id(cls, v):
+        if not v.replace('_', '').replace('-', '').isalnum():
+            raise ValueError("Invalid user_id format")
+        return v
 
 
 # --- API Routes ---
@@ -88,24 +120,17 @@ def force_seed_database():
     Forces seeding, writes a test connection document, and reads back the results.
     """
     try:
-        # 1. Fetch the exact project ID our Python SDK is communicating with
         project_id = db.db_client.project
-        
-        # 2. Write an explicit connection-test document
         test_ref = db.db_client.collection("diagnostics").document("test_connection")
         test_ref.set({
-            "timestamp": "active", 
+            "timestamp": "active",
             "status": "connected",
             "message": "Tracer successfully bypassed cache and wrote to Firestore!"
         })
-        
-        # 3. Seed default tables
         db.init_db()
-        
-        # 4. Attempt to read back the active user documents
         users = db.db_client.collection("users").get()
         user_ids = [u.id for u in users]
-        
+
         return {
             "status": "success",
             "connected_project_id": project_id,
@@ -114,10 +139,11 @@ def force_seed_database():
             "message": "Tracer complete. See connected_project_id and seeded_users above."
         }
     except Exception as e:
-        return {
-            "status": "error", 
-            "message": f"Firestore connection failed: {str(e)}"
-        }
+        logger.error(f"Firestore connection failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection failed. Please try again later."
+        )
 
 
 @app.get("/api/health")
@@ -135,52 +161,61 @@ def log_daily_summary(payload: DailyLogRequest):
     """
     Computes summary savings and registers them as persistent daily activity logs.
     """
-    user = db.get_user(payload.user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User reference not found."
-        )
-
-    summary = carbon_engine.calculate_daily_summary(
-        commute_mode=payload.commute_mode,
-        meal_type=payload.meal_type,
-        energy_actions=payload.energy_actions,
-        baseline_daily_kg=user.get("baseline_daily_kg", 12.0)
-    )
-
-    db.insert_activity_log(
-        user_id=payload.user_id,
-        category="commute",
-        action=payload.commute_mode,
-        co2_saved_kg=summary.commute_savings_kg,
-        notes=payload.notes or "Daily commute logging"
-    )
-
-    db.insert_activity_log(
-        user_id=payload.user_id,
-        category="meals",
-        action=payload.meal_type,
-        co2_saved_kg=summary.meal_savings_kg,
-        notes=payload.notes or "Daily diet logging"
-    )
-
-    if payload.energy_actions:
-        for action in payload.energy_actions:
-            db.insert_activity_log(
-                user_id=payload.user_id,
-                category="energy",
-                action=action,
-                co2_saved_kg=carbon_engine.ENERGY_DAILY_SAVINGS_KG.get(action, 0.0),
-                notes=payload.notes or "Daily energy actions"
+    try:
+        user = db.get_user(payload.user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found."
             )
 
-    return {
-        "success": True,
-        "co2_saved_total_kg": summary.total_savings_kg,
-        "trees_equivalent": summary.trees_equivalent,
-        "reduction_pct": summary.reduction_pct
-    }
+        summary = carbon_engine.calculate_daily_summary(
+            commute_mode=payload.commute_mode,
+            meal_type=payload.meal_type,
+            energy_actions=payload.energy_actions,
+            baseline_daily_kg=user.get("baseline_daily_kg", 12.0)
+        )
+
+        db.insert_activity_log(
+            user_id=payload.user_id,
+            category="commute",
+            action=payload.commute_mode,
+            co2_saved_kg=summary.commute_savings_kg,
+            notes=payload.notes or "Daily commute logging"
+        )
+
+        db.insert_activity_log(
+            user_id=payload.user_id,
+            category="meals",
+            action=payload.meal_type,
+            co2_saved_kg=summary.meal_savings_kg,
+            notes=payload.notes or "Daily diet logging"
+        )
+
+        if payload.energy_actions:
+            for action in payload.energy_actions:
+                db.insert_activity_log(
+                    user_id=payload.user_id,
+                    category="energy",
+                    action=action,
+                    co2_saved_kg=carbon_engine.ENERGY_DAILY_SAVINGS_KG.get(action, 0.0),
+                    notes=payload.notes or "Daily energy actions"
+                )
+
+        return {
+            "success": True,
+            "co2_saved_total_kg": summary.total_savings_kg,
+            "trees_equivalent": summary.trees_equivalent,
+            "reduction_pct": summary.reduction_pct
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error logging daily summary: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to log daily summary. Please try again."
+        )
 
 
 @app.post("/api/route/plan")
@@ -194,7 +229,11 @@ def plan_route_simulation(payload: RoutePlanRequest):
         )
         return route_details
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error planning route: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unable to plan route. Please check your input."
+        )
 
 
 @app.post("/api/logs/route")
