@@ -33,6 +33,61 @@
       -webkit-appearance: none;
       -moz-appearance: none;
     }
+
+    /* Profile Upgraded Timeline Styles */
+    .profile-timeline {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-left: 20px;
+      margin-top: 15px;
+    }
+    .profile-timeline::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 5px;
+      bottom: 5px;
+      width: 2px;
+      background-color: #1e293b; /* Line connector color */
+    }
+    .timeline-step {
+      display: flex;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .timeline-step:last-child {
+      margin-bottom: 0;
+    }
+    .timeline-marker {
+      position: absolute;
+      left: -20px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #3b82f6; /* Default Blue Bullet */
+      border: 2px solid #0b1329;
+    }
+    .timeline-marker.active {
+      background-color: #10b981; /* Glowing Emerald Bullet */
+      box-shadow: 0 0 8px #10b981;
+    }
+    .timeline-info {
+      display: flex;
+      flex-direction: column;
+      padding-left: 10px;
+    }
+    .timeline-text {
+      color: #adc6ff;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    .timeline-date {
+      color: #64748b;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
   </style>
 </head>
 
@@ -85,22 +140,21 @@
             </button>
           </li>
           <li>
-            <!-- Locate this button in index.html and update the SVG inside it -->
-<button id="nav-eco-arena" class="nav-item" data-target="view-eco-arena">
-  <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Trophy Cup (Primary Green) with Sprout -->
-    <path class="svg-primary" d="M6 4h12v7c0 3.31-2.69 6-6 6s-6-2.69-6-6V4Z" stroke="#4edea3" />
-    <path class="svg-primary" d="M12 7c1.5-2 3.5-2 4.5 1-1.5 0-3 .5-4.5-1Z" stroke="#4edea3" fill="rgba(78, 222, 163, 0.2)" />
-    
-    <!-- Trophy Base, Stand, and Side Handles (Secondary Blue) -->
-    <path class="svg-secondary" d="M6 20h12" stroke="#adc6ff" />
-    <path class="svg-secondary" d="M12 17v3" stroke="#adc6ff" />
-    <path class="svg-secondary" d="M6 7H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H6" stroke="#adc6ff" />
-    <path class="svg-secondary" d="M18 7h2.5A1.5 1.5 0 0 0 22 5.5v-1A1.5 1.5 0 0 0 20.5 3H18" stroke="#adc6ff" />
-  </svg>
-  <span>Eco Arena</span>
-</button>
+            <button id="nav-eco-arena" class="nav-item" data-target="view-eco-arena">
+              <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Trophy Cup (Primary Green) with Sprout -->
+                <path class="svg-primary" d="M6 4h12v7c0 3.31-2.69 6-6 6s-6-2.69-6-6V4Z" stroke="#4edea3" />
+                <path class="svg-primary" d="M12 7c1.5-2 3.5-2 4.5 1-1.5 0-3 .5-4.5-1Z" stroke="#4edea3" fill="rgba(78, 222, 163, 0.2)" />
+                
+                <!-- Trophy Base, Stand, and Side Handles (Secondary Blue) -->
+                <path class="svg-secondary" d="M6 20h12" stroke="#adc6ff" />
+                <path class="svg-secondary" d="M12 17v3" stroke="#adc6ff" />
+                <path class="svg-secondary" d="M6 7H3.5A1.5 1.5 0 0 1 2 5.5v-1A1.5 1.5 0 0 1 3.5 3H6" stroke="#adc6ff" />
+                <path class="svg-secondary" d="M18 7h2.5A1.5 1.5 0 0 0 22 5.5v-1A1.5 1.5 0 0 0 20.5 3H18" stroke="#adc6ff" />
+              </svg>
+              <span>Eco Arena</span>
+            </button>
           </li>
           <li>
             <button id="nav-notifications" class="nav-item" data-target="view-notifications">
@@ -784,41 +838,51 @@
       </section>
 
       <!-- View: Notifications (Simple placeholder view) -->
-      <section id="view-notifications" class="content-view">
-        <div class="module card-level-2 p-md flex-center flex-col text-center" style="min-height: 300px;">
-          <h3 class="headline-text mb-sm">Notifications</h3>
-          <p class="body-text text-muted max-w-sm mb-md">Stay up to date with updates from the global community,
-            challenge invites, and new tier announcements.</p>
-          <div class="notification-list-placeholder">
-            <div class="notification-item-row">
-              <div class="notif-bullet active"></div>
-              <div class="notif-content">
-                <p class="notif-text"><strong>Elena Greenheart</strong> just overtook you in the Stratosphere League!
-                </p>
-                <span class="notif-time label-mono">2h ago</span>
-              </div>
-            </div>
-            <div class="notification-item-row">
-              <div class="notif-bullet"></div>
-              <div class="notif-content">
-                <p class="notif-text">Daily challenge complete! <strong>+1.2kg CO2</strong> reduction recorded.</p>
-                <span class="notif-time label-mono">1d ago</span>
-              </div>
-            </div>
-          </div>
+      <!-- View: Notifications -->
+<section id="view-notifications" class="content-view">
+  <div class="module card-level-2 p-md flex-center flex-col" style="min-height: 300px;">
+    <h3 class="headline-text mb-sm text-center">Security & Social Feed</h3>
+    <p class="body-text text-muted max-w-sm mb-md text-center">
+      Live updates from your family circle, league standings, and milestone unlocks.
+    </p>
+    <!-- Pre-rendered static notification list (Restored for reliable instant load) -->
+    <div id="notification-list" class="notification-list-placeholder" style="width: 100%; max-w: 600px;">
+      <div class="notification-item-row">
+        <div class="notif-bullet active"></div>
+        <div class="notif-content">
+          <p class="notif-text"><strong>Sarah</strong> just overtook you in the Stratosphere League!</p>
+          <span class="notif-time label-mono">2h ago</span>
         </div>
-      </section>
+      </div>
+      <div class="notification-item-row">
+        <div class="notif-bullet"></div>
+        <div class="notif-content">
+          <p class="notif-text">Daily challenge complete! <strong>+1.2kg CO2</strong> reduction recorded.</p>
+          <span class="notif-time label-mono">1d ago</span>
+        </div>
+      </div>
+      <div class="notification-item-row">
+        <div class="notif-bullet"></div>
+        <div class="notif-content">
+          <p class="notif-text"><strong>Soil Master</strong> badge successfully unlocked and synchronized.</p>
+          <span class="notif-time label-mono">2d ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <!-- View: Profile (Simple placeholder view) -->
+      <!-- View: Profile (Polished View with Milestones Timeline & Impact Breakdown) -->
       <section id="view-profile" class="content-view">
-        <div class="module card-level-2 p-md" style="min-height: 400px;">
+        <div class="module card-level-2 p-md">
+          
+          <!-- Profile Header -->
           <div class="profile-header-view">
             <div class="profile-large-avatar">
               <svg width="80" height="80" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="48" fill="url(#avatarGrad)" />
                 <circle cx="50" cy="38" r="18" fill="#0f172a" />
-                <path d="M20 78C20 62 33 58 50 58C67 58 80 62 80 78C80 84 74 86 50 86C26 86 20 84 20 78Z"
-                  fill="#0f172a" />
+                <path d="M20 78C20 62 33 58 50 58C67 58 80 62 80 78C80 84 74 86 50 86C26 86 20 84 20 78Z" fill="#0f172a" />
               </svg>
             </div>
             <div class="profile-name-group">
@@ -827,20 +891,95 @@
               <span class="badge-chip label-mono">GOLD TIER GUARDIAN</span>
             </div>
           </div>
+          
           <hr class="divider">
-          <div class="profile-body-stats grid-3-col">
-            <div class="stat-card">
-              <span class="stat-num label-mono" id="profile-stat-co2">1,894.2 kg</span>
-              <span class="stat-label">Total CO2 Prevented</span>
+          
+          <!-- Upgraded Profile Grid Layout -->
+          <div class="grid-2-col-asym mt-md" style="gap: 20px;">
+            
+            <!-- Left Column: Core Stats + Impact Breakdown -->
+            <div class="flex-col-spacing">
+              
+              <!-- Stats Panel -->
+              <div class="profile-body-stats grid-3-col" style="margin: 0; padding: 0; border: none; background: transparent;">
+                <div class="stat-card" style="background: rgba(11, 19, 41, 0.5); border: 1px solid #1e293b; padding: 15px;">
+                  <span class="stat-num label-mono" id="profile-stat-co2" style="font-size: 1.5rem;">1,894.2 kg</span>
+                  <span class="stat-label">CO2 Prevented</span>
+                </div>
+                <div class="stat-card" style="background: rgba(11, 19, 41, 0.5); border: 1px solid #1e293b; padding: 15px;">
+                  <span class="stat-num label-mono" id="profile-stat-trees" style="font-size: 1.5rem;">94.7</span>
+                  <span class="stat-label">Trees Equivalent 🌲</span>
+                </div>
+                <div class="stat-card" style="background: rgba(11, 19, 41, 0.5); border: 1px solid #1e293b; padding: 15px;">
+                  <span class="stat-num label-mono" style="font-size: 1.5rem;">14th</span>
+                  <span class="stat-label">Global Rank</span>
+                </div>
+              </div>
+      
+              <!-- Impact Breakdown progress bars -->
+              <div class="stat-card" style="background: rgba(11, 19, 41, 0.5); border: 1px solid #1e293b; padding: 20px; border-radius: 12px;">
+                <h4 class="card-title label-mono mb-sm" style="font-size: 0.85rem; letter-spacing: 1px;">IMPACT CONTRIBUTION</h4>
+                <div class="family-list" style="margin-top: 15px;">
+                  <div class="family-member">
+                    <div class="member-info">
+                      <span class="member-name">Commute Savings</span>
+                      <span class="member-val label-mono highlight-green">45%</span>
+                    </div>
+                    <div class="progress-track sm">
+                      <div class="progress-fill fill-primary" style="width: 45%;"></div>
+                    </div>
+                  </div>
+                  <div class="family-member" style="margin-top: 12px;">
+                    <div class="member-info">
+                      <span class="member-name">Dietary Shifts</span>
+                      <span class="member-val label-mono highlight-green">35%</span>
+                    </div>
+                    <div class="progress-track sm">
+                      <div class="progress-fill fill-primary" style="width: 35%;"></div>
+                    </div>
+                  </div>
+                  <div class="family-member" style="margin-top: 12px;">
+                    <div class="member-info">
+                      <span class="member-name">Home Energy Efficiency</span>
+                      <span class="member-val label-mono highlight-green">20%</span>
+                    </div>
+                    <div class="progress-track sm">
+                      <div class="progress-fill fill-primary" style="width: 20%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+      
             </div>
-            <div class="stat-card">
-              <span class="stat-num label-mono" id="profile-stat-trees">94.7</span>
-              <span class="stat-label">Trees Equivalent 🌲</span>
+      
+            <!-- Leaderboard Column / Milestones Timeline -->
+            <div class="module card-level-2 p-md" style="background: rgba(11, 19, 41, 0.3); border-radius: 12px; border: 1px solid #1e293b;">
+              <h4 class="card-title label-mono" style="font-size: 0.85rem; letter-spacing: 1px;">GUARDIAN MILESTONES</h4>
+              <div class="profile-timeline">
+                <div class="timeline-step">
+                  <div class="timeline-marker active"></div>
+                  <div class="timeline-info">
+                    <h5 class="timeline-text">Kensington, London Base Established</h5>
+                    <span class="timeline-date label-mono">Just Now</span>
+                  </div>
+                </div>
+                <div class="timeline-step">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-info">
+                    <h5 class="timeline-text">Soil Master Badge Unlocked</h5>
+                    <span class="timeline-date label-mono">2 Days Ago</span>
+                  </div>
+                </div>
+                <div class="timeline-step">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-info">
+                    <h5 class="timeline-text">Entered Stratosphere League #14</h5>
+                    <span class="timeline-date label-mono">1 Week Ago</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="stat-card">
-              <span class="stat-num label-mono">14th</span>
-              <span class="stat-label">Global Leaderboard Rank</span>
-            </div>
+      
           </div>
         </div>
       </section>

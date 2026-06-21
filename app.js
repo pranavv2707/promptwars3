@@ -66,8 +66,6 @@ function enhanceButtonAccessibility(button, label) {
 }
 
 // Bypasses the Vite empty proxy and connects directly to FastAPI on port 8000
-//const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const CURRENT_USER_ID = "user_alex";
 const CURRENT_CIRCLE_ID = "circle_demo_01";
@@ -237,6 +235,14 @@ const state = {
   
   // Search query
   searchQuery: "",
+
+  // Dynamic notifications state list
+  notifications: [
+    { id: 1, active: true, text: "<strong>Sarah</strong> just overtook you in the Stratosphere League!", time: "2h ago" },
+    { id: 2, active: false, text: "Daily challenge complete! <strong>+1.2kg CO2</strong> reduction recorded.", time: "1d ago" },
+    { id: 3, active: false, text: "<strong>Soil Master</strong> badge successfully unlocked and synchronized.", time: "2d ago" },
+    { id: 4, active: false, text: "Your family circle <strong>Global Guardians</strong> reached a combined 1,200 kg CO2 saved!", time: "4d ago" }
+  ],
 
   // Leaderboard mock database
   leaderboard: [
