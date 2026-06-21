@@ -1,7 +1,6 @@
 # Karbon.io - Personal Carbon Footprint Tracker & Insights Assistant
 
 An interactive, gamified environmental impact platform designed to help individuals track, understand, and reduce their carbon footprint through daily actions, real-time route simulations, and context-aware insights. 
-
 This project was built from scratch as a high-fidelity Single Page Application (SPA) utilizing a modern, responsive Glassmorphic UI over an animated HTML5 Canvas connection map.
 
 ---
