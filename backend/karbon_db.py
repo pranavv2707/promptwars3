@@ -1,8 +1,7 @@
 """
 backend/karbon_db.py — Carbon Footprint Firebase Persistence Layer
 ==================================================================
-Uses Cloud Firestore instead of SQLite. 
-Requires firebase-admin and a credentials key at backend/firebase-key.json.
+Uses Cloud Firestore instead of SQLite.
 """
 
 from __future__ import annotations
@@ -15,8 +14,7 @@ from typing import Optional, Dict, Any, List
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# Initialize Firebase Admin SDK
-# Self-healing key path resolution: search in current folder, parent, and root
+# Self-healing key path resolution: search in current folder, parent, and grandparent
 KEY_PATH = None
 for directory in [Path(__file__).parent, Path(__file__).parent.parent, Path(__file__).parent.parent.parent]:
     candidate = directory / "firebase-key.json"
@@ -34,6 +32,9 @@ if not firebase_admin._apps:
             "Firebase private key file 'firebase-key.json' not found. "
             "Please ensure it is uploaded in the backend/ folder or as a secret file."
         )
+
+# EXPLICITLY INITIALIZE THE CLIENT GLOBALLY AFTER APP AUTHENTICATION
+db_client = firestore.client()
 
 
 # ---------------------------------------------------------------------------
@@ -172,23 +173,18 @@ def insert_route_log(
 def get_weekly_logs(user_id: str, days: int = 7) -> List[Dict[str, Any]]:
     """Retrieves activity logs for the past N days for a user."""
     cutoff_date = (date.today() - timedelta(days=days)).isoformat()
-
-    # Query with ordering and limit to improve efficiency
+    
     query = (
         db_client.collection("activity_logs")
         .where("user_id", "==", user_id)
-        .order_by("log_date", direction=firestore.Query.DESCENDING)
-        .limit(100)
         .get()
     )
-
-    # Filter by date locally
+    
     logs = []
     for doc in query:
         data = doc.to_dict()
         if data.get("log_date", "") >= cutoff_date:
             logs.append(data)
-        else:
-            break  # Stop once past cutoff since ordered DESC
-
+            
+    logs.sort(key=lambda x: x.get("log_date", ""), reverse=True)
     return logs
