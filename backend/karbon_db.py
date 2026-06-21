@@ -16,21 +16,24 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Initialize Firebase Admin SDK
-KEY_PATH = Path(__file__).parent / "firebase-key.json"
+# Self-healing key path resolution: search in current folder, parent, and root
+KEY_PATH = None
+for directory in [Path(__file__).parent, Path(__file__).parent.parent, Path(__file__).parent.parent.parent]:
+    candidate = directory / "firebase-key.json"
+    if candidate.exists():
+        KEY_PATH = candidate
+        break
 
 if not firebase_admin._apps:
-    if KEY_PATH.exists():
+    if KEY_PATH:
+        print(f"[FIREBASE] Successfully located credentials key at: {KEY_PATH}")
         cred = credentials.Certificate(str(KEY_PATH))
         firebase_admin.initialize_app(cred)
     else:
-        # Fallback to prevent startup crashes if key isn't copied yet
         raise FileNotFoundError(
-            "Firebase private key file not found at backend/firebase-key.json. "
-            "Please generate one from the Firebase Console to use this database configuration."
+            "Firebase private key file 'firebase-key.json' not found. "
+            "Please ensure it is uploaded in the backend/ folder or as a secret file."
         )
-
-# EXPLICITLY DEFINE THE CLIENT AT THE TOP-LEVEL FOR IMPORT ACCESS
-db_client = firestore.client()
 
 
 # ---------------------------------------------------------------------------
